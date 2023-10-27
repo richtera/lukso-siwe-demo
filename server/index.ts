@@ -29,6 +29,7 @@ import { exportJWK, importSPKI } from "jose";
 import base64url from "base64url";
 import { LSP0ERC725AccountInit__factory } from "../libs/contracts/factories/LSP0ERC725AccountInit__factory.js";
 import { hashMessage, verifyMessage } from "viem";
+import KeyEncoder from "key-encoder";
 
 config();
 
@@ -63,7 +64,9 @@ if (!process.env.VITE_MNEMONIC) {
 const wallet = HDNodeWallet.fromPhrase(process.env.VITE_MNEMONIC || "");
 
 async function getJwks() {
-  const pem = wallet.publicKey;
+  const KE = (KeyEncoder as any).default;
+  const keyEncoder = new KE("secp256k1");
+  const pem = keyEncoder.encodePublic(wallet.publicKey.slice(2), "raw", "pem");
   const { groups: { keyId = "", keyVersion = "" } = {} } =
     /.*\/cryptokeys\/(?<keyId>[\da-z-]+)\/cryptokeyversions\/(?<keyVersion>[\da-z-]+)$/i.exec(
       process.env.SERVER_KEY_PATH || ""

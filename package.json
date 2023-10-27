@@ -27,6 +27,7 @@
     "ethers-v6\n": "link:@typechain/ethers-v6\n",
     "fastify": "^4.24.3",
     "jose": "^5.0.1",
+    "key-encoder": "^2.0.3",
     "nodemon": "^3.0.1",
     "process": "^0.11.10",
     "react": "^18.2.0",
