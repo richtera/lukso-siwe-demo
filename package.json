@@ -1,0 +1,50 @@
+{
+  "name": "wagmi-template-vite-with-web3modal",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k 'nodemon --watch ./server/index.ts --exec \"ts-node-esm --project=./tsconfig.server.json ./server/index.ts\"' 'vite dev'",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typechain": "typechain --target ethers-v6 --out-dir libs/contracts './node_modules/@lukso/lsp-smart-contracts/artifacts/*.json'"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.4.0",
+    "@fastify/formbody": "^7.4.0",
+    "@fastify/static": "^6.11.2",
+    "@lukso/lsp-smart-contracts": "0.12.0-rc.0",
+    "@noble/secp256k1": "^2.0.0",
+    "@typechain/ethers-v5": "^11.1.2",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@web3modal/ethereum": "2.4.1",
+    "@web3modal/react": "2.4.1",
+    "base64url": "^3.0.1",
+    "buffer": "^6.0.3",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.8.0",
+    "ethers-v6\n": "link:@typechain/ethers-v6\n",
+    "fastify": "^4.24.3",
+    "jose": "^5.0.1",
+    "nodemon": "^3.0.1",
+    "process": "^0.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-json-view": "^1.21.3",
+    "siwe": "^2.1.4",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.3.2",
+    "util": "^0.12.4",
+    "viem": "~0.3.36",
+    "vite-plugin-mkcert": "^1.16.0",
+    "wagmi": "^1.0.6"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.3",
+    "@vitejs/plugin-react": "^4.0.0",
+    "typescript": "^5.0.4",
+    "vite": "^4.3.5"
+  }
+}
