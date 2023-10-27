@@ -2,6 +2,11 @@ This demo uses amongst other thing [wagmi](https://wagmi.sh) + [Web3Modal](https
 
 # Getting Started
 
+Get a wallet connect projectId and put it into .env (copy .env.example and fill it in)
+The app will create a mnemonic for you the first time you launch if it's not defined.
+You can copy the random one it generates into the .env so your server tokens will be valid during
+a restart.
+
 Install `pnpm` and `nodejs` (use asdf or nvm to get the right)
 Run `pnpm install`
 Run `pnpm run typegen` (one time to bootstrap the typechain wrappers for lsp-smart-contracts)
