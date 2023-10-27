@@ -15,6 +15,18 @@ Run `pnpm run dev` in your terminal, and then open [https://localhost:5173](http
 Once the webpage has loaded, changes made to files inside the `src/` and `server/` directories (e.g. `src/App.tsx`) will automatically update the webpage and server.
 The server is a small fastify server which allows token exchange and verify of JWT tokens.
 
+# Requests on server
+
+## `GET /exchange`
+
+Present a SIWE bearer token to exchange it for a server side SIWE token
+The public address of the server for the server token
+is available at `GET /.well-known/public-key` or as a jwks at `GET /.well-known/jwks`
+
+## `GET /verify`
+
+Present SIWE client or server bearer token to get verified.
+
 # Learn more
 
 To learn more about [Vite](https://vitejs.dev/) or [wagmi](https://wagmi.sh), check out the following resources:
