@@ -36,6 +36,10 @@ export async function createJwt(
     version: '1',
     expirationTime: new Date(Date.now() + 10_000).toISOString(),
     chainId,
+    resources: [
+      `did:account:${account}`,
+      `did:web:${import.meta.env.VITE_APP_DOMAIN}`,
+    ],
   });
   const message = message_.prepareMessage();
   const signature = await signMessage({
@@ -115,6 +119,7 @@ export async function verifyTokenOnServer(jwt: string): Promise<{
   account: `0x${string}`;
   error?: string;
   error_description?: string;
+  signature?: `0x${string}`;
 }> {
   return await fetch('/verify', {
     headers: {
@@ -139,7 +144,12 @@ export async function verifyTokenOnServer(jwt: string): Promise<{
 export async function verifyTokenOnClient(
   account: Address,
   jwt: string,
-): Promise<{ valid: boolean; account?: Address; message?: SiweMessage }> {
+): Promise<{
+  valid: boolean;
+  account?: Address;
+  message?: SiweMessage;
+  signature?: `0x${string}`;
+}> {
   const [header, message, signature] = (jwt || '')
     .split('.')
     .map((d: string) => base64url.toBuffer(d));
@@ -190,7 +200,12 @@ export async function verifyTokenOnClient(
           (output as unknown as `0x${string}`) ===
           ('0x1626ba7e' as `0x${string}`)
         ) {
-          return { valid: true, message: message_, account };
+          return {
+            valid: true,
+            message: message_,
+            account,
+            signature: toHex(signature),
+          };
         }
         return { valid: false };
       })
@@ -201,8 +216,8 @@ export async function verifyTokenOnClient(
   } else if (
     message_.resources?.find(
       (d) =>
-        d.startsWith('web:account:') &&
-        getAddress(d.replace(/^web:account:/, '')) === account,
+        d.startsWith('did:account:') &&
+        getAddress(d.replace(/^did:account:/, '')) === account,
     )
   ) {
     const serverAddress = await fetch('/.well-known/public-key')
@@ -223,7 +238,12 @@ export async function verifyTokenOnClient(
       })
       .catch((error) => {
         console.error(error);
-        return { valid: false, message: message_, error: error.message };
+        return {
+          valid: false,
+          message: message_,
+          error: error.message,
+          signature: toHex(signature),
+        };
       });
   }
   return { valid: false };

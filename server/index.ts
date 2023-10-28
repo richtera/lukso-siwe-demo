@@ -98,17 +98,19 @@ async function exchangeToken(
   domain: string,
   address: string,
 ) {
+  const set = new Set([
+    ...(siwe.resources || []),
+    siwe.uri,
+    'did:web:' + siwe.domain,
+    'did:account:' + siwe.address,
+  ]);
+  set.delete('did:account:' + getAddress(wallet.address));
   const newMessage = new SiweMessage({
     ...siwe,
     uri,
     domain,
     address,
-    resources: [
-      ...(siwe.resources || []),
-      siwe.uri,
-      'did:web:' + siwe.domain,
-      'did:account:' + siwe.address,
-    ],
+    resources: [...set.values()],
     issuedAt: new Date().toISOString(),
     expirationTime: new Date(Date.now() + 30 * 24 * 60 * 60_000).toISOString(),
     nonce,
@@ -129,6 +131,7 @@ async function exchangeToken(
       .map((d) => base64url(d, 'base64'))
       .join('.'),
     message: newMessage,
+    signature: hexlify(signature),
   };
 }
 
@@ -172,7 +175,7 @@ async function decodeToken(token: string) {
         resource.startsWith('did:account:'),
       ) || ''
     ).replace(/^did:account:/, '');
-    return { message: message_, account, valid: true };
+    return { message: message_, account, valid: true, signature: signature_ };
   }
   const account = getAddress(message_.address);
   const contract = LSP0ERC725AccountInit__factory.connect(account, provider);
@@ -183,7 +186,12 @@ async function decodeToken(token: string) {
   if (value !== '0x1626ba7e') {
     throw new Error('Invalid token');
   }
-  return { account, message: message_, valid: true };
+  return {
+    account,
+    message: message_,
+    valid: true,
+    signature: hexlify(signature),
+  };
 }
 
 /**
@@ -231,15 +239,30 @@ fastify.get('/exchange', async (request, reply) => {
     return;
   }
   try {
-    const { message, account } = await decodeToken(authorization);
-    const { jwt, message: newMessage } = await exchangeToken(
+    const {
+      message,
+      account,
+      signature: originalSignature,
+    } = await decodeToken(authorization);
+    const {
+      jwt,
+      message: newMessage,
+      signature,
+    } = await exchangeToken(
       message,
       `https://${process.env.VITE_APP_DOMAIN}`,
       Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex'),
       process.env.VITE_APP_DOMAIN || '',
       wallet.address,
     );
-    return { message: newMessage, originalMessage: message, jwt: jwt, account };
+    return {
+      message: newMessage,
+      originalMessage: message,
+      originalSignature,
+      jwt: jwt,
+      signature,
+      account,
+    };
   } catch (error) {
     reply.code(401).send({
       error: (error as any).message,

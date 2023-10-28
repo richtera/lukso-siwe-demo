@@ -1,0 +1,12 @@
+*
+!/src
+!/index.html
+!/tsconfig.*
+!/pnpm-lock.yaml
+!/package.json
+!/public
+!/tailwind.config.js
+!/vite.config.js
+!/postcss.config.js
+!/polyfills.ts
+!/server

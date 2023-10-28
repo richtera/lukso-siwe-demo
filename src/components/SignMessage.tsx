@@ -32,20 +32,10 @@ export function SignMessage() {
         jwt={data?.client?.jwt}
         title="Verify Client token on Client"
       />
-      <hr />
-      <ClientVerifyJwt
-        jwt={data?.server?.jwt}
-        title="Verify Server token on Client"
+      <ServerVerifyJwt
+        jwt={data?.client?.jwt}
+        title="Verify Client token on Server"
       />
-      <hr />
-      <ExchangeToken
-        jwt={data?.server?.jwt}
-        onToken={(jwt) =>
-          setData((value: any) => ({ ...value, server: { jwt } }))
-        }
-        title="Refresh Server token"
-      />
-      <hr />
       <ExchangeToken
         jwt={data?.client?.jwt}
         onToken={(jwt) =>
@@ -53,14 +43,20 @@ export function SignMessage() {
         }
         title="Retrieve Server token from Client token"
       />
-      <hr />
+      <ClientVerifyJwt
+        jwt={data?.server?.jwt}
+        title="Verify Server token on Client"
+      />
+      <ExchangeToken
+        jwt={data?.server?.jwt}
+        onToken={(jwt) =>
+          setData((value: any) => ({ ...value, server: { jwt } }))
+        }
+        title="Refresh Server token"
+      />
       <ServerVerifyJwt
         jwt={data?.server?.jwt}
         title="Verify Server token on Server"
-      />
-      <ServerVerifyJwt
-        jwt={data?.client?.jwt}
-        title="Verify Client token on Server"
       />
       <div className="shadow-lg rounded-2xl m-3 p-5 bg-white">
         <div className="w-full overflow-auto">
