@@ -1,5 +1,10 @@
 This demo uses amongst other thing [wagmi](https://wagmi.sh) + [Web3Modal](https://web3modal.com/) + [Vite](https://vitejs.dev/) project bootstrapped with [`create-wagmi`](https://github.com/wagmi-dev/wagmi/tree/main/packages/create-wagmi)
 
+# Demo
+
+A demo implementation of this dapp is deployed at.
+[https://siwe-demo.richtera.app](https://siwe-demo.richtera.app)
+
 # Getting Started
 
 Get a wallet connect projectId and put it into .env (copy .env.example and fill it in)
