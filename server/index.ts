@@ -264,6 +264,7 @@ fastify.get('/exchange', async (request, reply) => {
       account,
     };
   } catch (error) {
+    fastify.log.error(error);
     reply.code(401).send({
       error: (error as any).message,
       valid: false,
