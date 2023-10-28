@@ -10,7 +10,7 @@ import {
 import { Address } from 'wagmi';
 import { signMessage } from 'wagmi/actions';
 
-import { config, walletClient } from '../wagmi';
+import { config } from '../wagmi';
 
 /**
  * Convert the SiweMessage to a JWT
@@ -159,6 +159,9 @@ export async function verifyTokenOnClient(
     return { valid: false };
   }
   if (message_.address === account) {
+    if (!config.chains || !config.connector) {
+      throw new Error('No chains or connector configured');
+    }
     const contract = getContract({
       abi: [
         {
@@ -188,7 +191,7 @@ export async function verifyTokenOnClient(
       ],
       address: account,
       publicClient: config.getPublicClient(),
-      walletClient,
+      walletClient: await config.connector.getWalletClient(),
     });
     return await contract.read
       .isValidSignature([

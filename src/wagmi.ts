@@ -1,5 +1,4 @@
 import { w3mConnectors, w3mProvider } from '@web3modal/ethereum';
-import { createWalletClient, custom } from 'viem';
 import { configureChains, createConfig } from 'wagmi';
 
 export const walletConnectProjectId =
@@ -49,9 +48,4 @@ export const config = createConfig({
   webSocketPublicClient,
 });
 
-const walletClient = createWalletClient({
-  chain: chains[0],
-  transport: custom((window as any).lukso),
-});
-
-export { chains, walletClient, publicClient };
+export { chains, publicClient };
