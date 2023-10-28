@@ -44,7 +44,7 @@ export function CreateJwt({ title }: { title: string }) {
           required
         />
         <button
-          className="ms-2 rounded border-solid border-2 border-sky-500 px-2"
+          className="rounded border-solid border-2 border-sky-500 disabled:text-gray-300 disabled:border-gray-200 disabled:bg-gray-100 px-2"
           disabled={!account.address}
           type="submit"
         >

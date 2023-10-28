@@ -22,7 +22,7 @@ export function ServerVerifyJwt({
     <div className="shadow-lg rounded-2xl m-3 p-5 bg-white">
       <h3 className="text-md">{title}</h3>
       <button
-        className="rounded border-solid border-2 border-sky-500 px-2"
+        className="rounded border-solid border-2 border-sky-500 disabled:text-gray-300 disabled:border-gray-200 disabled:bg-gray-100 px-2"
         disabled={!jwt}
         onClick={onClick}
       >

@@ -1,10 +1,10 @@
 import { createContext, useCallback, useState } from 'react';
-import JSONView from 'react-json-view';
 
 import { ClientVerifyJwt } from './ClientVerifyJwt';
 import { CreateJwt } from './CreateJwt';
 import { ExchangeToken } from './ExchangeToken';
 import { ServerVerifyJwt } from './ServerVerifyJwt';
+import { ShowSession } from './ShowSession';
 
 export const SignMessageContext = createContext<{
   data: any;
@@ -58,11 +58,7 @@ export function SignMessage() {
         jwt={data?.server?.jwt}
         title="Verify Server token on Server"
       />
-      <div className="shadow-lg rounded-2xl m-3 p-5 bg-white">
-        <div className="w-full overflow-auto">
-          <JSONView name="localStorage.session" src={data} />
-        </div>
-      </div>
+      <ShowSession />
     </SignMessageContext.Provider>
   );
 }
