@@ -7,86 +7,74 @@
  *
  * Learn more at https://developers.cloudflare.com/workers/
  */
-import fastifyCors from "@fastify/cors";
-import formBody from "@fastify/formbody";
-import fastifyStatic from "@fastify/static";
-import { Signature } from "@noble/secp256k1";
-import { config } from "dotenv";
-import crypto from "node:crypto";
-import path from "node:path";
-import {
-  JsonRpcProvider,
-  getAddress,
-  hexlify,
-  keccak256,
-  Contract,
-  HDNodeWallet,
-  SigningKey,
-} from "ethers";
-import Fastify, { FastifyReply, FastifyRequest } from "fastify";
-import { SiweMessage } from "siwe";
-import { exportJWK, importSPKI } from "jose";
-import base64url from "base64url";
-import { LSP0ERC725AccountInit__factory } from "../libs/contracts/factories/LSP0ERC725AccountInit__factory.js";
-import { hashMessage, verifyMessage } from "viem";
-import KeyEncoder from "key-encoder";
+import fastifyCors from '@fastify/cors';
+import formBody from '@fastify/formbody';
+import fastifyStatic from '@fastify/static';
+import base64url from 'base64url';
+import { config } from 'dotenv';
+import { JsonRpcProvider, getAddress, hexlify, HDNodeWallet } from 'ethers';
+import Fastify from 'fastify';
+import { exportJWK, importSPKI } from 'jose';
+import KeyEncoder from 'key-encoder';
+import crypto from 'node:crypto';
+import path from 'node:path';
+import { SiweMessage } from 'siwe';
+import { hashMessage, verifyMessage } from 'viem';
+
+import { LSP0ERC725AccountInit__factory } from '../libs/contracts/factories/LSP0ERC725AccountInit__factory.js';
 
 config();
 
 const fastify = Fastify({
   logger: true,
-  ...(process.env.ENABLE_HTTP2 === "true" ? { http2: true } : {}),
+  ...(process.env.ENABLE_HTTP2 === 'true' ? { http2: true } : {}),
 });
 await fastify.register(formBody);
 await fastify.register(fastifyCors, {
   // put your options here
 });
 // eslint-disable-next-line unicorn/no-null
-fastify.decorateRequest("user", null);
+fastify.decorateRequest('user', null);
 // eslint-disable-next-line unicorn/no-null
-fastify.decorateRequest("tags", null);
+fastify.decorateRequest('tags', null);
 // eslint-disable-next-line unicorn/no-null
-fastify.decorateRequest("scope", null);
+fastify.decorateRequest('scope', null);
 
 // now let's create a router (note the lack of "new")
-const provider = new JsonRpcProvider("https://rpc.testnet.lukso.network");
+const provider = new JsonRpcProvider('https://rpc.testnet.lukso.network');
 
 if (!process.env.VITE_MNEMONIC) {
   const wallet = HDNodeWallet.createRandom();
   const phrase = wallet.mnemonic?.phrase;
-  console.log(phrase);
-  console.log(
-    `Please configure your .env with\nVITE_MNEMONIC=${phrase}\nor any other mnemonic you want to use.\nStarting up with random new phrase above.\nThis private/public key pair is used to sign and verify server tokens.`
+  fastify.log.info(phrase);
+  fastify.log.info(
+    `Please configure your .env with\nVITE_MNEMONIC=${phrase}\nor any other mnemonic you want to use.\nStarting up with random new phrase above.\nThis private/public key pair is used to sign and verify server tokens.`,
   );
   process.env.VITE_MNEMONIC = phrase;
 }
 
-const wallet = HDNodeWallet.fromPhrase(process.env.VITE_MNEMONIC || "");
+const wallet = HDNodeWallet.fromPhrase(process.env.VITE_MNEMONIC || '');
 
 async function getJwks() {
   const KE = (KeyEncoder as any).default;
-  const keyEncoder = new KE("secp256k1");
-  const pem = keyEncoder.encodePublic(wallet.publicKey.slice(2), "raw", "pem");
-  const { groups: { keyId = "", keyVersion = "" } = {} } =
-    /.*\/cryptokeys\/(?<keyId>[\da-z-]+)\/cryptokeyversions\/(?<keyVersion>[\da-z-]+)$/i.exec(
-      process.env.SERVER_KEY_PATH || ""
-    ) || {};
-  const pk = await importSPKI(pem as string, "ES256K");
+  const keyEncoder = new KE('secp256k1');
+  const pem = keyEncoder.encodePublic(wallet.publicKey.slice(2), 'raw', 'pem');
+  const pk = await importSPKI(pem as string, 'ES256K');
   const jwk = await exportJWK(pk);
-  return [{ ...jwk, kid: "1" }];
+  return [{ ...jwk, kid: '1' }];
 }
 
-fastify.get("/.well-known/jwks", async (_request, reply) => {
+fastify.get('/.well-known/jwks', async (_request, reply) => {
   reply
     .code(200)
-    .header("Content-Type", "application/json; charset=utf-8")
+    .header('Content-Type', 'application/json; charset=utf-8')
     .send(await getJwks());
 });
 
-fastify.get("/.well-known/public-key", async (_request, reply) => {
+fastify.get('/.well-known/public-key', async (_request, reply) => {
   reply
     .code(200)
-    .header("Content-Type", "application/json; charset=utf-8")
+    .header('Content-Type', 'application/json; charset=utf-8')
     .send({
       address: wallet.address,
       publicKey: wallet.publicKey,
@@ -108,7 +96,7 @@ async function exchangeToken(
   uri: string,
   nonce: string,
   domain: string,
-  address: string
+  address: string,
 ) {
   const newMessage = new SiweMessage({
     ...siwe,
@@ -118,8 +106,8 @@ async function exchangeToken(
     resources: [
       ...(siwe.resources || []),
       siwe.uri,
-      "did:web" + siwe.domain,
-      "did:account:" + siwe.address,
+      'did:web:' + siwe.domain,
+      'did:account:' + siwe.address,
     ],
     issuedAt: new Date().toISOString(),
     expirationTime: new Date(Date.now() + 30 * 24 * 60 * 60_000).toISOString(),
@@ -128,17 +116,18 @@ async function exchangeToken(
   const message = newMessage.prepareMessage();
   const signature = await wallet.signMessage(message);
   const header = {
-    alg: "ES256K",
-    typ: "JWT",
+    alg: 'ES256K',
+    typ: 'JWT',
+    kid: '1',
   };
   return {
     jwt: [
       Buffer.from(JSON.stringify(header)),
       Buffer.from(message),
-      Buffer.from(signature.slice(2), "hex"),
+      Buffer.from(signature.slice(2), 'hex'),
     ]
-      .map((d) => base64url(d, "base64"))
-      .join("."),
+      .map((d) => base64url(d, 'base64'))
+      .join('.'),
     message: newMessage,
   };
 }
@@ -150,17 +139,17 @@ async function exchangeToken(
  */
 async function decodeToken(token: string) {
   if (!token) {
-    throw new Error("No token");
+    throw new Error('No token');
   }
-  const [_header, message, signature] = token.split(".").map((segment) => {
+  const [_header, message, signature] = token.split('.').map((segment) => {
     return base64url.toBuffer(segment);
   });
   if (!signature || !message || !_header) {
-    throw new Error("No token");
+    throw new Error('No token');
   }
   const header = JSON.parse(_header.toString());
-  if (header.alg !== "ES256K" || header.typ !== "JWT") {
-    throw new Error("Invalid token");
+  if (header.alg !== 'ES256K' || header.typ !== 'JWT') {
+    throw new Error('Invalid token');
   }
 
   const messageString = message.toString();
@@ -176,25 +165,25 @@ async function decodeToken(token: string) {
         address: message_.address as `0x${string}`,
       }))
     ) {
-      throw new Error("Invalid token");
+      throw new Error('Invalid token');
     }
     const account = (
       message_.resources?.find((resource) =>
-        resource.startsWith("did:account:")
-      ) || ""
-    ).replace(/^did:account:/, "");
-    return { message: message_, account };
+        resource.startsWith('did:account:'),
+      ) || ''
+    ).replace(/^did:account:/, '');
+    return { message: message_, account, valid: true };
   }
   const account = getAddress(message_.address);
   const contract = LSP0ERC725AccountInit__factory.connect(account, provider);
   const value = await contract.isValidSignature(
     hashMessage(messageString),
-    hexlify(signature)
+    hexlify(signature),
   );
-  if (value !== "0x1626ba7e") {
-    throw new Error("Invalid token");
+  if (value !== '0x1626ba7e') {
+    throw new Error('Invalid token');
   }
-  return { account, message: message_ };
+  return { account, message: message_, valid: true };
 }
 
 /**
@@ -204,22 +193,22 @@ async function decodeToken(token: string) {
  *
  * Returns { message: SiweMessage, valid: boolean } as json
  */
-fastify.get("/verify", async (request, reply) => {
-  const authorization = request.headers.authorization?.replace(/^bearer /i, "");
+fastify.get('/verify', async (request, reply) => {
+  const authorization = request.headers.authorization?.replace(/^bearer /i, '');
   if (!authorization) {
     reply.code(401).send({
-      error: "invalid_request",
-      error_description: "Missing authorization header",
+      error: 'invalid_request',
+      error_description: 'Missing authorization header',
     });
     return;
   }
   try {
-    const message = await decodeToken(authorization);
-    return { message, valid: true };
+    return await decodeToken(authorization);
   } catch (error) {
     reply.code(401).send({
       error: (error as any).message,
-      error_description: "Invalid authorization header",
+      valid: false,
+      error_description: 'Invalid authorization header',
     });
   }
 });
@@ -231,12 +220,13 @@ fastify.get("/verify", async (request, reply) => {
  *
  * Returns { message: SiweMessage, originalMessage: SiweMessage, jwt: string } as JSON
  */
-fastify.get("/exchange", async (request, reply) => {
-  const authorization = request.headers.authorization?.replace(/^bearer /i, "");
+fastify.get('/exchange', async (request, reply) => {
+  const authorization = request.headers.authorization?.replace(/^bearer /i, '');
   if (!authorization) {
     reply.code(401).send({
-      error: "invalid_request",
-      error_description: "Missing authorization header",
+      error: 'invalid_request',
+      valid: false,
+      error_description: 'Missing authorization header',
     });
     return;
   }
@@ -245,23 +235,43 @@ fastify.get("/exchange", async (request, reply) => {
     const { jwt, message: newMessage } = await exchangeToken(
       message,
       `https://${process.env.VITE_APP_DOMAIN}`,
-      Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("hex"),
-      process.env.VITE_APP_DOMAIN || "",
-      wallet.address
+      Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex'),
+      process.env.VITE_APP_DOMAIN || '',
+      wallet.address,
     );
-    return { message: newMessage, originalMessage: message, jwt: jwt };
+    return { message: newMessage, originalMessage: message, jwt: jwt, account };
   } catch (error) {
     reply.code(401).send({
       error: (error as any).message,
-      error_description: "Invalid authorization header",
+      valid: false,
+      error_description: 'Invalid authorization header',
     });
   }
 });
 
+const root = path.resolve(process.env.BASE_DIR || './dist');
+
+fastify.register(
+  (childContext, _, done) => {
+    childContext.register(fastifyStatic, {
+      root,
+      wildcard: true,
+      index: 'index.html',
+      prefix: '/',
+      redirect: true,
+    });
+    childContext.setNotFoundHandler((_, reply) => {
+      return reply.code(200).type('text/html').sendFile('index.html', root);
+    });
+    done();
+  },
+  { prefix: '/' },
+);
+
 async function run() {
   const port = process.env.PORT ? Number.parseInt(process.env.PORT, 10) : 3000;
   await fastify.listen({
-    host: "::",
+    host: '::',
     port,
     listenTextResolver: (address) => `Listening on ${address}`,
   });

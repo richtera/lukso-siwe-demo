@@ -1,36 +1,42 @@
-import { w3mConnectors, w3mProvider } from '@web3modal/ethereum'
-import { configureChains, createConfig } from 'wagmi'
-import { goerli, mainnet } from 'wagmi/chains'
+import { w3mConnectors, w3mProvider } from '@web3modal/ethereum';
+import { createWalletClient, custom } from 'viem';
+import { configureChains, createConfig } from 'wagmi';
 
-export const walletConnectProjectId = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID || ''
+export const walletConnectProjectId =
+  import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID || '';
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
-  [{
-    id: 4201,
-    name: 'LUKSO Testnet',
-    network: '4201',
-    blockExplorers: {
-      default: { name: 'Execution Exporer', url: 'https://explorer.execution.testnet.lukso.network' },
+  [
+    {
+      id: 4201,
+      name: 'LUKSO Testnet',
+      network: '4201',
+      blockExplorers: {
+        default: {
+          name: 'Execution Exporer',
+          url: 'https://explorer.execution.testnet.lukso.network',
+        },
+      },
+      nativeCurrency: { name: 'TEST LYX', symbol: 'LYXt', decimals: 18 },
+      rpcUrls: {
+        '4201': {
+          http: ['https://rpc.testnet.lukso.network'],
+          webSocket: ['wss://ws-rpc.testnet.lukso.network'],
+        },
+        default: {
+          http: ['https://rpc.testnet.lukso.network'],
+          webSocket: ['wss://ws-rpc.testnet.lukso.network'],
+        },
+        public: {
+          http: ['https://rpc.testnet.lukso.network'],
+          webSocket: ['wss://ws-rpc.testnet.lukso.network'],
+        },
+      },
+      testnet: true,
     },
-    nativeCurrency: { name: 'TEST LYX', symbol: 'LYXt', decimals: 18 },
-    rpcUrls: {
-      '4201': {
-        http: ['https://rpc.testnet.lukso.network'],
-        webSocket: ['wss://ws-rpc.testnet.lukso.network'],
-      },
-      default: {
-        http: ['https://rpc.testnet.lukso.network'],
-        webSocket: ['wss://ws-rpc.testnet.lukso.network'],
-      },
-      public: {
-        http: ['https://rpc.testnet.lukso.network'],
-        webSocket: ['wss://ws-rpc.testnet.lukso.network'],
-      },
-    },
-    testnet: true,
-  }],
+  ],
   [w3mProvider({ projectId: walletConnectProjectId })],
-)
+);
 
 export const config = createConfig({
   autoConnect: true,
@@ -41,6 +47,11 @@ export const config = createConfig({
   }),
   publicClient,
   webSocketPublicClient,
-})
+});
 
-export { chains }
+const walletClient = createWalletClient({
+  chain: chains[0],
+  transport: custom((window as any).lukso),
+});
+
+export { chains, walletClient, publicClient };

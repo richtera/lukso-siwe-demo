@@ -1,0 +1,40 @@
+{
+  "extends": ["next/core-web-vitals", "eslint:recommended", "prettier", "plugin:prettier/recommended", "plugin:@typescript-eslint/recommended", "plugin:unicorn/recommended"],
+  "plugins": ["prettier", "@typescript-eslint"],
+  "rules": {
+    "prettier/prettier": "error",
+    //TYPESCRIPT
+    "@typescript-eslint/no-unused-vars": ["error", { "vars": "all", "args": "all", "argsIgnorePattern": "^_" }],
+    "unicorn/no-useless-undefined": "off",
+    "unicorn/no-nested-ternary": "off",
+    // NEXT
+    "@next/next/no-img-element": "off",
+    // REACT
+    "react/no-unescaped-entities": "off",
+    // Unicorn
+    "unicorn/prevent-abbreviations": [
+      "error",
+      {
+        "replacements": {
+          "e": false,
+          "i": false,
+          "props": false
+        }
+      }
+    ],
+    "unicorn/filename-case": ["off"],
+    "unicorn/catch-error-name": ["off"],
+    "@typescript-eslint/no-explicit-any": "off",
+    // OTHER
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "import/order": [
+      "error",
+      {
+        "groups": [["builtin", "external", "index"], ["sibling", "parent", "internal"], "object", "type"],
+        "newlines-between": "always",
+        "alphabetize": { "order": "asc" }
+      }
+    ],
+    "@typescript-eslint/ban-ts-comment": "off"
+  }
+}

@@ -12,8 +12,9 @@
 
 # vite
 
-dist
-dist-ssr
+/dist
+/dist-ssr
+/dist.server
 
 # production
 
