@@ -64,6 +64,13 @@ async function getJwks() {
   return [{ ...jwk, kid: '1' }];
 }
 
+fastify.get('/.well-known/walletconnect.txt', async (_request, reply) => {
+  reply
+    .code(200)
+    .header('Content-Type', 'text/plain; charset=utf-8')
+    .send(process.env.VITE_WALLET_CONNECT_VERIFY || '');
+});
+
 fastify.get('/.well-known/jwks', async (_request, reply) => {
   reply
     .code(200)
