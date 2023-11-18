@@ -7,6 +7,32 @@ export const walletConnectProjectId =
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
     {
+      id: 42,
+      name: 'LUKSO Mainnet',
+      network: '42',
+      blockExplorers: {
+        default: {
+          name: 'Execution Exporer',
+          url: 'https://explorer.execution.mainnet.lukso.network',
+        },
+      },
+      nativeCurrency: { name: 'LYX', symbol: 'LYX', decimals: 18 },
+      rpcUrls: {
+        '42': {
+          http: ['https://rpc.mainnet.lukso.network'],
+          webSocket: ['wss://ws-rpc.mainnet.lukso.network'],
+        },
+        default: {
+          http: ['https://rpc.mainnet.lukso.network'],
+          webSocket: ['wss://ws-rpc.mainnet.lukso.network'],
+        },
+        public: {
+          http: ['https://rpc.mainnet.lukso.network'],
+          webSocket: ['wss://ws-rpc.mainnet.lukso.network'],
+        },
+      },
+    },
+    {
       id: 4201,
       name: 'LUKSO Testnet',
       network: '4201',
